@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"unicode/utf8"
 
+	regexp "github.com/dlclark/regexp2"
 	jptr "github.com/qri-io/jsonpointer"
 )
 
@@ -83,7 +83,7 @@ func (p Pattern) ValidateKeyword(ctx context.Context, currentState *ValidationSt
 	schemaDebug("[Pattern] Validating")
 	re := regexp.Regexp(p)
 	if str, ok := data.(string); ok {
-		if !re.Match([]byte(str)) {
+		if m, _ := re.MatchString(str); !m {
 			currentState.AddError(data, fmt.Sprintf("regexp pattern %s mismatch on string: %s", re.String(), str))
 		}
 	}
@@ -96,7 +96,7 @@ func (p *Pattern) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	ptn, err := regexp.Compile(str)
+	ptn, err := regexp.Compile(str, REGEXP2_OPTIONS)
 	if err != nil {
 		return err
 	}

@@ -6,11 +6,11 @@ import (
 	"net"
 	"net/mail"
 	"net/url"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	regexp "github.com/dlclark/regexp2"
 	jptr "github.com/qri-io/jsonpointer"
 )
 
@@ -25,12 +25,12 @@ const (
 
 var (
 	// emailPattern           = regexp.MustCompile(email)
-	hostnamePattern        = regexp.MustCompile(hostname)
-	unescaptedTildaPattern = regexp.MustCompile(unescapedTilda)
-	endingTildaPattern     = regexp.MustCompile(endingTilda)
-	schemePrefixPattern    = regexp.MustCompile(schemePrefix)
-	uriTemplatePattern     = regexp.MustCompile(uriTemplate)
-	uuidPattern            = regexp.MustCompile(uuid)
+	hostnamePattern        = regexp.MustCompile(hostname, REGEXP2_OPTIONS)
+	unescaptedTildaPattern = regexp.MustCompile(unescapedTilda, REGEXP2_OPTIONS)
+	endingTildaPattern     = regexp.MustCompile(endingTilda, REGEXP2_OPTIONS)
+	schemePrefixPattern    = regexp.MustCompile(schemePrefix, REGEXP2_OPTIONS)
+	uriTemplatePattern     = regexp.MustCompile(uriTemplate, REGEXP2_OPTIONS)
+	uuidPattern            = regexp.MustCompile(uuid, REGEXP2_OPTIONS)
 
 	disallowedIdnChars = map[string]bool{"\u0020": true, "\u002D": true, "\u00A2": true, "\u00A3": true, "\u00A4": true, "\u00A5": true, "\u034F": true, "\u0640": true, "\u07FA": true, "\u180B": true, "\u180C": true, "\u180D": true, "\u200B": true, "\u2060": true, "\u2104": true, "\u2108": true, "\u2114": true, "\u2117": true, "\u2118": true, "\u211E": true, "\u211F": true, "\u2123": true, "\u2125": true, "\u2282": true, "\u2283": true, "\u2284": true, "\u2285": true, "\u2286": true, "\u2287": true, "\u2288": true, "\u2616": true, "\u2617": true, "\u2619": true, "\u262F": true, "\u2638": true, "\u266C": true, "\u266D": true, "\u266F": true, "\u2752": true, "\u2756": true, "\u2758": true, "\u275E": true, "\u2761": true, "\u2775": true, "\u2794": true, "\u2798": true, "\u27AF": true, "\u27B1": true, "\u27BE": true, "\u3004": true, "\u3012": true, "\u3013": true, "\u3020": true, "\u302E": true, "\u302F": true, "\u3031": true, "\u3032": true, "\u3035": true, "\u303B": true, "\u3164": true, "\uFFA0": true}
 )
@@ -143,7 +143,8 @@ func isValidEmail(email string) error {
 // https://tools.ietf.org/html/rfc1034#section-3.1
 // https://tools.ietf.org/html/rfc5891#section-4.4
 func isValidHostname(hostname string) error {
-	if !hostnamePattern.MatchString(hostname) || len(hostname) > 255 {
+
+	if m, _ := hostnamePattern.MatchString(hostname); !m || len(hostname) > 255 {
 		return fmt.Errorf("invalid hostname string")
 	}
 	return nil
@@ -232,10 +233,10 @@ func isValidJSONPointer(jsonPointer string) error {
 		return fmt.Errorf("non-empty references must begin with a '/' character")
 	}
 	str := jsonPointer[1:]
-	if unescaptedTildaPattern.MatchString(str) {
+	if m, _ := unescaptedTildaPattern.MatchString(str); m {
 		return fmt.Errorf("unescaped tilda error")
 	}
-	if endingTildaPattern.MatchString(str) {
+	if m, _ := endingTildaPattern.MatchString(str); m {
 		return fmt.Errorf("unescaped tilda error")
 	}
 	return nil
@@ -251,7 +252,7 @@ func isValidJSONPointer(jsonPointer string) error {
 // http://json-schema.org/latest/jsoxn-schema-validation.html#regexInterop
 // https://tools.ietf.org/html/rfc7159
 func isValidRegex(regex string) error {
-	if _, err := regexp.Compile(regex); err != nil {
+	if _, err := regexp.Compile(regex, REGEXP2_OPTIONS); err != nil {
 		return fmt.Errorf("invalid regex expression")
 	}
 	return nil
@@ -307,7 +308,7 @@ func isValidURIRef(uriRef string) error {
 // https://tools.ietf.org/html/rfc6570
 func isValidURITemplate(uriTemplate string) error {
 	arbitraryValue := "aaa"
-	uriRef := uriTemplatePattern.ReplaceAllString(uriTemplate, arbitraryValue)
+	uriRef, _ := uriTemplatePattern.Replace(uriTemplate, arbitraryValue, -1, -1)
 	if strings.Contains(uriRef, "{") || strings.Contains(uriRef, "}") {
 		return fmt.Errorf("invalid uri template")
 	}
@@ -321,7 +322,7 @@ func isValidURI(uri string) error {
 	if _, err := url.Parse(uri); err != nil {
 		return fmt.Errorf("uri incorrectly Formatted: %s", err.Error())
 	}
-	if !schemePrefixPattern.MatchString(uri) {
+	if m, _ := schemePrefixPattern.MatchString(uri); !m {
 		return fmt.Errorf("uri missing scheme prefix")
 	}
 	return nil
@@ -332,7 +333,7 @@ func isValidURI(uri string) error {
 // Format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 // https://tools.ietf.org/html/rfc4122#section-3
 func isValidUUID(uuid string) error {
-	if !uuidPattern.MatchString(uuid) {
+	if m, _ := uuidPattern.MatchString(uuid); !m {
 		return fmt.Errorf("invalid uuid string")
 	}
 	return nil

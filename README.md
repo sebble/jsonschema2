@@ -6,6 +6,8 @@
 [![CI](https://img.shields.io/circleci/project/github/qri-io/jsonschema.svg?style=flat-square)](https://circleci.com/gh/qri-io/jsonschema)
 [![Go Report Card](https://goreportcard.com/badge/github.com/qri-io/jsonschema)](https://goreportcard.com/report/github.com/qri-io/jsonschema)
 
+> ⚠️ NOTICE ⚠️ - This fork replaces `regexp` with [`dlclark/regexp2`](https://github.com/dlclark/regexp2)
+
 golang implementation of the [JSON Schema Specification](http://json-schema.org/), which lets you write JSON that validates some other json. Rad.
 
 ### Package Features

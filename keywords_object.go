@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"strconv"
 
+	regexp "github.com/dlclark/regexp2"
 	jptr "github.com/qri-io/jsonpointer"
 )
 
@@ -221,7 +221,7 @@ func (p PatternProperties) ValidateKeyword(ctx context.Context, currentState *Va
 	if obj, ok := data.(map[string]interface{}); ok {
 		for key, val := range obj {
 			for _, ptn := range p {
-				if ptn.re.Match([]byte(key)) {
+				if m, _ := ptn.re.MatchString(key); m {
 					currentState.SetEvaluatedKey(key)
 					subState := currentState.NewSubState()
 					subState.DescendBase("patternProperties", key)
@@ -270,7 +270,7 @@ func (p *PatternProperties) UnmarshalJSON(data []byte) error {
 	ptn := make(PatternProperties, len(props))
 	i := 0
 	for key, sch := range props {
-		re, err := regexp.Compile(key)
+		re, err := regexp.Compile(key, REGEXP2_OPTIONS)
 		if err != nil {
 			return fmt.Errorf("invalid pattern: %s: %s", key, err.Error())
 		}
